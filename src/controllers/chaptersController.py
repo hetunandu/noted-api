@@ -9,7 +9,7 @@ chapters_controller = Blueprint('chapters', __name__)
 
 
 @chapters_controller.route('/', methods=['POST'])
-@Utils.auth_required
+@Utils.admin_required
 def store(user):
     """
     Store a chapter. //TODO: Only admin users should be able to do this
@@ -49,7 +49,7 @@ def get_concepts(user, chapter_key):
 
 
 @chapters_controller.route('/<chapter_key>', methods=['PUT'])
-@Utils.auth_required
+@Utils.admin_required
 def edit_chapter(user, chapter_key):
     """
     Edit the chapter
@@ -67,7 +67,7 @@ def edit_chapter(user, chapter_key):
 
 
 @chapters_controller.route('/<chapter_key>', methods=['DELETE'])
-@Utils.auth_required
+@Utils.admin_required
 def delete_chapter(user, chapter_key):
     """
     Delete the chapter and remove link from the other concepts

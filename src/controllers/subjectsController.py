@@ -22,7 +22,7 @@ def get(user):
 
 
 @subjects_controller.route('/', methods=['POST'])
-@Utils.auth_required
+@Utils.admin_required
 def store(user):
     """
     Store a subject. //TODO: Only admin users should be able to do this
