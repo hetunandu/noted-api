@@ -15,7 +15,7 @@ def get(user):
     """
     courses = map(Course.as_dict, Course.query().fetch())
 
-    return Respond.success(courses)
+    return Respond.success({"courses": courses})
 
 
 @courses_controller.route('/', methods=['POST'])
