@@ -20,6 +20,8 @@ class User(ndb.Model):
     year = ndb.IntegerProperty()
     # Type of the user
     type = ndb.StringProperty(choices=["Student", "Creator", "Admin"], default="Student")
+    # User has access to which subjects
+    has_access = ndb.KeyProperty(kind="Subject", repeated=True)
     # Model time properties
     created_at = ndb.DateTimeProperty(auto_now_add=True)
     updated_at = ndb.DateTimeProperty(auto_now=True)

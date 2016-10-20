@@ -12,7 +12,7 @@ chapters_controller = Blueprint('chapters', __name__)
 @Utils.admin_required
 def store(user):
     """
-    Store a chapter. //TODO: Only admin users should be able to do this
+    Store a chapter
     :param user:
     :return:
     """

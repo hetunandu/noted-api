@@ -12,7 +12,7 @@ subjects_controller = Blueprint('subjects', __name__)
 @subjects_controller.route('/', methods=['GET'])
 @Utils.auth_required
 def get(user):
-    course = ndb.Key(urlsafe=user.course).get()
+    course = user.course.get()
     if not course:
         return Respond.error("User not subscribed to a course", error_code=400)
 
@@ -42,7 +42,7 @@ def store(user):
 
     return Respond.success(subject.dict_for_list())
 
-@subjects_controller.route('/<subject_key>', methods=['GET'])
+@subjects_controller.route('/<subject_key>/plan', methods=['GET'])
 @Utils.auth_required
 def view(user, subject_key):
     """
@@ -51,11 +51,12 @@ def view(user, subject_key):
     plan = _get_plan(user, subject_key)
 
     if len(plan) == 0:
-        plan = False
+        return Respond.success({
+            "plan": False
+        })
     
     return Respond.success({
-        "plan": plan[0].as_dict(),
-        "paid": False
+        "plan": plan[0].as_dict()
     })
 
 @subjects_controller.route('/<subject_key>/plan', methods=['POST'])
@@ -79,13 +80,12 @@ def create_plan(user, subject_key):
 
     return Respond.success("User plan created")
 
-
-    
-
-
 @subjects_controller.route('/<subject_key>/chapters', methods=['GET'])
 @Utils.auth_required
 def get_chapters(user, subject_key):
+    if user.type is "Student":
+        if subject_key not in user.has_access:
+            return Respond.error("User does not have access to the subject notes", error_code=403)
 
     subject = ndb.Key(urlsafe=subject_key).get()
 
