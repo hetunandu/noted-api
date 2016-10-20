@@ -8,7 +8,7 @@ class Course(ndb.Model):
     created_at = ndb.DateTimeProperty(auto_now_add=True)
     updated_at = ndb.DateTimeProperty(auto_now=True)
 
-    def single_dic(self):
+    def as_dict(self):
         return {
             "key": self.key.urlsafe(),
             "name": self.name
@@ -22,3 +22,4 @@ class Course(ndb.Model):
             subjects.append(subject.dict_for_list())
 
         return subjects
+    

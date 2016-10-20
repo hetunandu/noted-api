@@ -45,3 +45,22 @@ def auth_required(original_function):
             return original_function(user, *args, **kwargs)
 
     return wrapper_func
+
+def admin_required(original_function):
+    @wraps(original_function)
+    def wrapper_func(*args, **kwargs):
+        token = request.headers.get('Authorization')
+
+        if token is None:
+            return Respond.error('Auth Required', 401)
+
+        user = User.from_token(token)
+
+        if user is None:
+            return Respond.error('User not found', 400)
+        elif user.type is "Admin":
+            return Respond.error("User not an admin", 422)
+        else:
+            return original_function(user, *args, **kwargs)
+
+    return wrapper_func

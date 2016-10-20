@@ -10,6 +10,7 @@ users_controller = Blueprint('users', __name__)
 
 
 @users_controller.route('/admin/register', methods=['POST'])
+@Utils.admin_required
 def admin_register():
     """
     Get the post variables and register the user
