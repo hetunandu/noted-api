@@ -1,5 +1,3 @@
-from google.appengine.ext import ndb
-
 from flask import Blueprint, request
 from src.common import Utils
 from src.common.Respond import Respond
@@ -25,14 +23,14 @@ def get(user):
 @Utils.admin_required
 def store(user):
     """
-    Store a subject. //TODO: Only admin users should be able to do this
+    Store a subject.
     :param user:
     :return:
     """
     post = Utils.parse_json(request)
     subject = Subject(
         name=post['name'],
-        course_key=ndb.Key(urlsafe=user.course)
+        course_key=user.course
     )
 
     if 'image' in post:
@@ -87,7 +85,7 @@ def get_chapters(user, subject_key):
         if subject_key not in user.has_access:
             return Respond.error("User does not have access to the subject notes", error_code=403)
 
-    subject = ndb.Key(urlsafe=subject_key).get()
+    subject = Utils.urlsafe_to_key(subject_key).get()
 
     chapters = subject.query_chapters()
 
@@ -96,7 +94,7 @@ def get_chapters(user, subject_key):
 
 def _get_plan(user, subject_key):
     plan = UserPlan.query(
-            UserPlan.subject == ndb.Key(urlsafe=subject_key),
+            UserPlan.subject == Utils.urlsafe_to_key(subject_key),
             ancestor=user.key
         ).fetch()
     return plan
