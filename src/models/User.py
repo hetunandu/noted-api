@@ -7,19 +7,19 @@ from passlib.hash import pbkdf2_sha256
 
 class User(ndb.Model):
     # Basic Account Details
-    name = ndb.StringProperty()
+    name = ndb.StringProperty(required=True)
     email = ndb.StringProperty()
-    password = ndb.StringProperty()
+    password = ndb.StringProperty(indexed=False)
     # Google Login Details
     google_token = ndb.StringProperty(indexed=False)
     # the uri where the profile picture is uploaded
     picture_uri = ndb.StringProperty(indexed=False)
     # Basic Course details
-    course = ndb.StringProperty()
+    course = ndb.KeyProperty(kind="Course")
     college = ndb.StringProperty()
     year = ndb.IntegerProperty()
     # Type of the user
-    type = ndb.StringProperty(choices=self._type_choices, default="Student")
+    type = ndb.StringProperty(choices=["Student", "Creator", "Admin"], default="Student")
     # Model time properties
     created_at = ndb.DateTimeProperty(auto_now_add=True)
     updated_at = ndb.DateTimeProperty(auto_now=True)
@@ -29,6 +29,7 @@ class User(ndb.Model):
     # Get the dict representation of a user
     def as_dict(self):
         return {
+            "key": self.key.urlsafe(),
             "name": self.name,
             "email": self.email,
             "picture_uri": self.picture_uri,
@@ -77,8 +78,3 @@ class User(ndb.Model):
         return pbkdf2_sha256.verify(password, self.password)
 
     # Choices for type property of the model
-    _type_choices = [
-        "Student",
-        "Creator",
-        "Admin"
-    ]

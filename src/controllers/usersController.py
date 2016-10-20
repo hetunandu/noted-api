@@ -23,7 +23,7 @@ def admin_register():
         return Respond.error("Validation Error", error_code=422)
 
     # Check if email has not registered before
-    if len(User.query(User.email == post['email']).fetch()) > 0:
+    if User.query(User.email == post['email']).count() > 0:
         return Respond.error("User account with this email already registered", 401)
 
     # Create a user model
@@ -31,9 +31,10 @@ def admin_register():
         name=post['name'],
         email=post['email'],
         password=User.hash_password(post['password']),
+        type=post['type']
     )
 
-    # Save other properties of the user
+    # Add other properties of the user if sent
     if 'year' in post:
         user.year = post['year']
     if 'course' in post:
@@ -75,6 +76,9 @@ def admin_login():
     # If user not found
     if user is None:
         return Respond.error("User not found with the provided email", error_code=404)
+
+    if user.type is "Admin":
+        return Respond.error("User not an Admin", error_code=422)
 
     # If password not correct
     if not user.verify_password(post['password']):
