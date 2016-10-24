@@ -78,5 +78,3 @@ class User(ndb.Model):
     # Verify hashed password
     def verify_password(self, password):
         return pbkdf2_sha256.verify(password, self.password)
-
-    # Choices for type property of the model

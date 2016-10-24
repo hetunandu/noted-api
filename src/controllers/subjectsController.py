@@ -40,7 +40,7 @@ def store(user):
 
     return Respond.success(subject.dict_for_list())
 
-@subjects_controller.route('/<subject_key>/plan', methods=['GET'])
+@subjects_controller.route('/<subject_key>', methods=['GET'])
 @Utils.auth_required
 def view(user, subject_key):
     """
@@ -48,13 +48,14 @@ def view(user, subject_key):
     """
     plan = _get_plan(user, subject_key)
 
-    if len(plan) == 0:
-        return Respond.success({
-            "plan": False
-        })
+    if Utils.urlsafe_to_key(subject_key) in user.has_access:
+        hasChapterAccess = True
+    else:
+        hasChapterAccess = False
     
     return Respond.success({
-        "plan": plan[0].as_dict()
+        "plan": plan.as_dict() if plan else False,
+        "hasChapterAccess": hasChapterAccess
     })
 
 @subjects_controller.route('/<subject_key>/plan', methods=['POST'])
@@ -63,13 +64,13 @@ def create_plan(user, subject_key):
     """
     Make a plan with the test date and portion
     """
-    if len(_get_plan(user, subject_key)) > 0:
+    if _get_plan(user, subject_key):
         return Respond.error("Plan already exists")
     
     post = Utils.parse_json(request)
 
     plan = UserPlan(
-        subject=ndb.Key(urlsafe=subject_key),
+        subject=Utils.urlsafe_to_key(subject_key),
         test_date=Utils.date_from_ms(post['test_date']),
         portion=map(Utils.urlsafe_to_key, post['portion']),
         parent=user.key
@@ -96,6 +97,6 @@ def _get_plan(user, subject_key):
     plan = UserPlan.query(
             UserPlan.subject == Utils.urlsafe_to_key(subject_key),
             ancestor=user.key
-        ).fetch()
-    return plan
-   
+        ).get()
+
+    return plan if plan else False

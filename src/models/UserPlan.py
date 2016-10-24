@@ -1,6 +1,7 @@
 from google.appengine.ext import ndb
 import datetime
 from src.models.Concept import Concept
+from src.models.UserStudyData import UserStudyData
 
 
 class UserPlan(ndb.Model):
@@ -16,10 +17,24 @@ class UserPlan(ndb.Model):
             "concepts_left": self._concepts_left()
         }
 
-
     def _days_left(self):
         delta = self.test_date - datetime.date.today()
         return delta.days
 
     def _concepts_left(self):
-        return len(Concept.query(ancestor=self.key).fetch())
+        # concepts_in_portion = []
+        # for chapter in self.portion:
+        #     concepts = Concept.query(Concept.chapter_key == chapter.key).fetch()
+        #     concepts_in_portion.append(concepts)
+        
+
+        # for concept in concepts_in_portion:
+        #     concepts_with_data = UserStudyData.query(
+        #                             UserStudyData.concept == concept.key,
+        #                             ancestor=self.ancestor
+        #                         ).count()
+        return False
+            
+
+        
+
