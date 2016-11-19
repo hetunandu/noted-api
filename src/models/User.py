@@ -35,7 +35,6 @@ class User(ndb.Model):
             "name": self.name,
             "email": self.email,
             "picture_uri": self.picture_uri,
-            "course": self.course,
             "college": self.college,
             "year": self.year,
             "created_at": self.created_at,
