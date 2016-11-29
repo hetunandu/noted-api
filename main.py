@@ -8,8 +8,6 @@ from src.controllers.subjectsController import subjects_controller
 from src.controllers.chaptersController import chapters_controller
 from src.controllers.conceptsController import concepts_controller
 
-from src.controllers.deckController import deck_controller
-
 app = Flask(__name__)
 CORS(app)
 
@@ -30,7 +28,6 @@ def page_not_found(e):
 
 
 app.register_blueprint(users_controller, url_prefix="/users")
-app.register_blueprint(deck_controller, url_prefix="/deck")
 app.register_blueprint(subjects_controller, url_prefix="/subjects")
 app.register_blueprint(courses_controller, url_prefix="/courses")
 app.register_blueprint(chapters_controller, url_prefix="/chapters")
