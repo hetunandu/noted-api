@@ -47,7 +47,9 @@ def get(user):
 			
 				# When was the last time user fetched data
 				latest_data = concepts_data_query.get()
+				timeElapsed = datetime.now() - latest_data.created_at
 				subject['last_fetched_date'] = latest_data.created_at
+				subject['time_to_more'] = 86400 - timeElapsed.seconds
 			else:
 				subject['last_fetched_date'] = None
 
