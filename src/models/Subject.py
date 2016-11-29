@@ -4,25 +4,25 @@ from src.models.Chapter import Chapter
 
 
 class Subject(ndb.Model):
-    course_key = ndb.KeyProperty(kind="Course")
-    name = ndb.StringProperty(indexed=False)
-    image = ndb.StringProperty(indexed=False)
-    created_at = ndb.DateTimeProperty(auto_now_add=True)
-    updated_at = ndb.DateTimeProperty(auto_now=True)
+	course_key = ndb.KeyProperty(kind="Course")
+	name = ndb.StringProperty(indexed=False)
+	image = ndb.StringProperty(indexed=False)
+	created_at = ndb.DateTimeProperty(auto_now_add=True)
+	updated_at = ndb.DateTimeProperty(auto_now=True)
 
-    def query_chapters(self):
-        chapters = []
+	def query_chapters(self):
+		chapters = []
 
-        chapters_query = Chapter.query(ancestor=self.key).order(Chapter.created_at)
+		chapters_query = Chapter.query(ancestor=self.key).order(Chapter.created_at)
 
-        for chapter in chapters_query:
-            chapters.append(chapter.for_list())
+		for chapter in chapters_query:
+			chapters.append(chapter.for_list())
 
-        return chapters
+		return chapters
 
-    def dict_for_list(self):
-        return {
-            "key": self.key.urlsafe(),
-            "name": self.name,
-            "image": self.image
-        }
+	def dict_for_list(self):
+		return {
+			"key": self.key.urlsafe(),
+			"name": self.name,
+			"image": self.image
+		}

@@ -10,38 +10,40 @@ courses_controller = Blueprint('courses', __name__)
 @courses_controller.route('/', methods=['GET'])
 @Utils.auth_required
 def get(user):
-    """
-    Get all the available courses
-    """
-    courses = map(Course.as_dict, Course.query().fetch())
+	"""
+	Get all the available courses
+	"""
+	courses = map(Course.as_dict, Course.query().fetch())
 
-    return Respond.success({"courses": courses})
+	return Respond.success({"courses": courses})
 
 
 @courses_controller.route('/', methods=['POST'])
-@Utils.admin_required
+@Utils.creator_required
 def store(user):
-    """
-    Store a course. //TODO: Only admin users should be able to do this
-    :param user:
-    :return:
-    """
-    post = Utils.parse_json(request)
-    course = Course(name=post['name'])
-    course.put()
+	"""
+	Store a course.
+	:param user:
+	:return:
+	"""
+	post = Utils.parse_json(request)
+	course = Course(name=post['name'])
+	course.put()
 
-    return Respond.success(Course.as_dict(course))
+	return Respond.success(Course.as_dict(course))
 
 @courses_controller.route('/<course_key>/subscribe', methods=['POST'])
 @Utils.auth_required
 def subscribe(user, course_key):
-    """
-    Subscribe a course
-    :param user:
-    :param course_key:
-    :return:
-    """
-    user.course = ndb.Key(urlsafe=course_key)
-    user.put()
+	"""
+	Subscribe a course
+	:param user:
+	:param course_key:
+	:return:
+	"""
+	post = Utils.parse_json(request)
+	user.course = ndb.Key(urlsafe=course_key)
+	user.college = post['college']
+	user.put()
 
-    return Respond.success("Course subscribed by user")
+	return Respond.success("Course subscribed by user")

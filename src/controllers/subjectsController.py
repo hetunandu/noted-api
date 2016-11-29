@@ -2,7 +2,10 @@ from flask import Blueprint, request
 from src.common import Utils
 from src.common.Respond import Respond
 from src.models.Subject import Subject
-from src.models.UserPlan import UserPlan
+from src.models.Chapter import Chapter
+from src.models.Concept import Concept
+from src.models.UserConceptData import UserConceptData
+from datetime import datetime
 
 subjects_controller = Blueprint('subjects', __name__)
 
@@ -10,93 +13,165 @@ subjects_controller = Blueprint('subjects', __name__)
 @subjects_controller.route('/', methods=['GET'])
 @Utils.auth_required
 def get(user):
-    course = user.course.get()
-    if not course:
-        return Respond.error("User not subscribed to a course", error_code=400)
+	course = user.course.get()
+	if not course:
+		return Respond.error("User not subscribed to a course", error_code=400)
 
-    subjects = course.query_subjects()
+	subjects = course.query_subjects()
 
-    return Respond.success({"subjects": subjects})
+	if user.type == "Student":
+		for subject in subjects:
+			subject_key = Utils.urlsafe_to_key(subject['key'])
+			
+			# Total number of concepts
+			chapter_keys = Chapter.query(ancestor=subject_key).fetch(keys_only=True)
+			subject['total_concepts'] = Concept.query(
+				Concept.chapter_key.IN(chapter_keys)
+			).count()
+
+			concepts_data_query = UserConceptData.query(
+				UserConceptData.subject == subject_key,
+				ancestor=user.key
+			).order(UserConceptData.created_at)
+
+			has_data_count = concepts_data_query.count()            
+			if has_data_count > 0:
+
+				# How many concepts have data stores
+				subject['has_data_count'] = has_data_count
+			
+				# How many concepts have been understood
+				subject['is_understood_count'] = concepts_data_query.filter(
+					UserConceptData.understood == True
+				).count()
+			
+				# When was the last time user fetched data
+				latest_data = concepts_data_query.get()
+				subject['last_fetched_date'] = latest_data.created_at
+			else:
+				subject['last_fetched_date'] = None
+
+	return Respond.success({"subjects": subjects})
+
+
+@subjects_controller.route('/<subject_key>/concepts')
+@Utils.auth_required
+def get_concepts(user, subject_key):
+	"""
+	Fetch the DAILY_LIMIT concepts to be sent to the
+	"""
+	# Find the subject entity
+	subject = Utils.urlsafe_to_key(subject_key).get()
+	# Empty list to add the concepts
+	todays_concepts = []
+	# Set the daily limit
+	DAILY_LIMIT = 20
+	
+	# Find concepts with data present in the subject
+	user_concepts_data = UserConceptData.query(
+		UserConceptData.subject == subject.key,
+		ancestor=user.key,
+	).order(UserConceptData.created_at).fetch()
+
+	# No data made before. First time
+	if len(user_concepts_data) == 0:
+	# Add DAILY_LIMIT concepts to the array and send
+
+		# Find Chapters in the subject
+		chapters = Chapter.query(ancestor=subject.key).order(Chapter.created_at).fetch()
+
+		# Get the concepts in the index 
+		for chapter in chapters:
+			for concept in chapter.index:
+				# Add only if the daily limit has reached
+				if len(todays_concepts) < DAILY_LIMIT:
+					# Create user data for the new concepts
+					user_data = UserConceptData(
+						subject=subject.key,
+						concept=Utils.urlsafe_to_key(concept['key']),
+						parent=user.key
+					)
+					user_data.put_async()
+					# Add it to the array
+					todays_concepts.append(concept['key'])
+				else:
+					break
+
+	else:
+		# Add the not understood concepts in the todays_concepts list
+		for data in user_concepts_data:
+			if data.understood == False:
+				todays_concepts.append(data.concept.urlsafe())
+
+		# if less than DAILY_LIMIT are in todays_concepts
+		if len(todays_concepts) < DAILY_LIMIT:
+			# Check if 24 hours have passed since the last created data
+			timeElapsed = datetime.now() - user_concepts_data[0].created_at
+			if timeElapsed.seconds > 86400:
+				# get the reaming concepts from chapters
+				chapters = Chapter.query(ancestor=subject.key).order(Chapter.created_at).fetch()
+			
+				# make a list of concepts with user data
+				concepts_with_user_data = []
+				for concept_data in user_concepts_data:
+					concepts_with_user_data.append(concept_data.concept.urlsafe())
+
+				# Go through the chapter index to find out the next concepts to send them
+				for chapter in chapters:
+					for concept in chapter.index:
+						if len(todays_concepts) < DAILY_LIMIT:
+							# Check if concept_data has already been made
+							if not concept['key'] in concepts_with_user_data:
+								# Create user data for the new concepts
+								user_data = UserConceptData(
+									subject=subject.key,
+									concept=Utils.urlsafe_to_key(concept['key']),
+									parent=user.key
+								)
+								user_data.put_async()
+								# Add it to the array
+								todays_concepts.append(concept['key'])
+						else:
+							break
+
+	concepts_with_data = []
+	for concept in todays_concepts:
+		data = Utils.urlsafe_to_key(concept).get().to_dict()
+		concepts_with_data.append(data)
+
+	return Respond.success({"concepts": concepts_with_data})
 
 
 @subjects_controller.route('/', methods=['POST'])
-@Utils.admin_required
+@Utils.creator_required
 def store(user):
-    """
-    Store a subject.
-    :param user:
-    :return:
-    """
-    post = Utils.parse_json(request)
-    subject = Subject(
-        name=post['name'],
-        course_key=user.course
-    )
+	"""
+	Store a subject.
+	:param user:
+	:return:
+	"""
+	post = Utils.parse_json(request)
+	subject = Subject(
+		name=post['name'],
+		course_key=user.course
+	)
 
-    if 'image' in post:
-        subject.image = post['image']
+	if 'image' in post:
+		subject.image = post['image']
 
-    subject.put()
+	subject.put()
 
-    return Respond.success(subject.dict_for_list())
-
-@subjects_controller.route('/<subject_key>', methods=['GET'])
-@Utils.auth_required
-def view(user, subject_key):
-    """
-    Get the user progress of a subject and if they have paid for the notes of a subject
-    """
-    plan = _get_plan(user, subject_key)
-
-    if Utils.urlsafe_to_key(subject_key) in user.has_access:
-        hasChapterAccess = True
-    else:
-        hasChapterAccess = False
-    
-    return Respond.success({
-        "plan": plan.as_dict() if plan else False,
-        "hasChapterAccess": hasChapterAccess
-    })
-
-@subjects_controller.route('/<subject_key>/plan', methods=['POST'])
-@Utils.auth_required
-def create_plan(user, subject_key):
-    """
-    Make a plan with the test date and portion
-    """
-    if _get_plan(user, subject_key):
-        return Respond.error("Plan already exists")
-    
-    post = Utils.parse_json(request)
-
-    plan = UserPlan(
-        subject=Utils.urlsafe_to_key(subject_key),
-        test_date=Utils.date_from_ms(post['test_date']),
-        portion=map(Utils.urlsafe_to_key, post['portion']),
-        parent=user.key
-    )
-    plan.put()
-
-    return Respond.success("User plan created")
+	return Respond.success(subject.dict_for_list())
 
 @subjects_controller.route('/<subject_key>/chapters', methods=['GET'])
 @Utils.auth_required
 def get_chapters(user, subject_key):
-    if user.type is "Student":
-        if subject_key not in user.has_access:
-            return Respond.error("User does not have access to the subject notes", error_code=403)
+	if user.type is "Student":
+		if subject_key not in user.has_access:
+			return Respond.error("User does not have access to the subject notes", error_code=403)
 
-    subject = Utils.urlsafe_to_key(subject_key).get()
+	subject = Utils.urlsafe_to_key(subject_key).get()
 
-    chapters = subject.query_chapters()
+	chapters = subject.query_chapters()
 
-    return Respond.success({"chapters": chapters})
-
-
-def _get_plan(user, subject_key):
-    plan = UserPlan.query(
-            UserPlan.subject == Utils.urlsafe_to_key(subject_key),
-            ancestor=user.key
-        ).get()
-
-    return plan if plan else False
+	return Respond.success({"chapters": chapters})

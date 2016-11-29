@@ -15,7 +15,25 @@ indexes:
   properties:
   - name: created_at
 
+- kind: Concept
+  ancestor: yes
+  properties:
+  - name: created_at
+
 - kind: Subject
   properties:
   - name: course_key
+  - name: created_at
+
+- kind: UserConceptData
+  ancestor: yes
+  properties:
+  - name: subject
+  - name: created_at
+
+- kind: UserConceptData
+  ancestor: yes
+  properties:
+  - name: subject
+  - name: understood
   - name: created_at
