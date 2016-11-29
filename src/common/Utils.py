@@ -57,7 +57,7 @@ def admin_required(original_function):
 
 		if user is None:
 			return Respond.error('User not found', 400)
-		elif not user.type is "Admin":
+		elif user.type != "Admin":
 			return Respond.error("User not an admin", 422)
 		else:
 			return original_function(user, *args, **kwargs)
@@ -73,10 +73,9 @@ def creator_required(original_function):
 			return Respond.error('Auth Required', 401)
 
 		user = User.from_token(token)
-
 		if user is None:
 			return Respond.error('User not found', 400)
-		elif user.type is not "Admin" or user.type is not "Creator":
+		elif (user.type != 'Admin' and user.type != 'Creator'):
 			return Respond.error("Permission Denied", 422)
 		else:
 			return original_function(user, *args, **kwargs)
