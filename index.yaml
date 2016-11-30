@@ -35,5 +35,12 @@ indexes:
   ancestor: yes
   properties:
   - name: subject
-  - name: understood
+  - name: done
   - name: created_at
+
+- kind: UserConceptData
+  ancestor: yes
+  properties:
+  - name: done
+  - name: subject
+  - name: concept

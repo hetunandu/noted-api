@@ -6,6 +6,7 @@ from src.models.Chapter import Chapter
 from src.models.Concept import Concept
 from src.models.UserConceptData import UserConceptData
 from datetime import datetime
+import random
 
 subjects_controller = Blueprint('subjects', __name__)
 
@@ -41,8 +42,8 @@ def get(user):
 				subject['has_data_count'] = has_data_count
 			
 				# How many concepts have been understood
-				subject['is_understood_count'] = concepts_data_query.filter(
-					UserConceptData.understood == True
+				subject['is_done_count'] = concepts_data_query.filter(
+					UserConceptData.done == True
 				).count()
 			
 				# When was the last time user fetched data
@@ -102,7 +103,7 @@ def get_concepts(user, subject_key):
 	else:
 		# Add the not understood concepts in the todays_concepts list
 		for data in user_concepts_data:
-			if data.understood == False:
+			if data.done == False:
 				todays_concepts.append(data.concept.urlsafe())
 
 		# if less than DAILY_LIMIT are in todays_concepts
@@ -142,6 +143,57 @@ def get_concepts(user, subject_key):
 		concepts_with_data.append(data)
 
 	return Respond.success({"concepts": concepts_with_data})
+
+@subjects_controller.route('/<subject_key>/quiz')
+@Utils.auth_required
+def quiz_user(user, subject_key):
+	"""
+	Take 10 concepts in done randomly and send it to the user
+	"""
+	# Find the subject entity
+	subject = Utils.urlsafe_to_key(subject_key).get()
+	
+	# Find concepts with concepts marked as done
+	concepts_done_query = UserConceptData.query(
+		UserConceptData.subject == subject.key,
+		UserConceptData.done == True,
+		ancestor=user.key,
+	)
+
+	# If questions less than 10, return error
+	if concepts_done_query.count() < 10:
+		return Respond.error("Less than 10 concepts marked done")
+
+	# Fetch the concepts
+	concepts_done = concepts_done_query.fetch(projection=[UserConceptData.concept])
+	
+	# Take random 10 random concepts
+	
+	# Empty list to add the concepts
+	random_concepts = []
+	# Set the daily limit
+	LIMIT = 10
+
+	N = 0
+	for concept in concepts_done:
+	        N += 1
+	        if len( random_concepts ) < LIMIT:
+	            random_concepts.append( concept )
+	        else:
+	            s = int(random.random() * N)
+	            if s < LIMIT:
+	                random_concepts[ s ] = concept
+
+	# Get full entity
+	full_concepts = []
+
+	for concept_data in random_concepts:
+		entity = concept_data.concept.get()
+		full_concepts.append(entity.to_dict())
+
+	# send them
+	return Respond.success({"questions": full_concepts})
+
 
 
 @subjects_controller.route('/', methods=['POST'])

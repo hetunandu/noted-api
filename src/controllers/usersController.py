@@ -78,7 +78,7 @@ def admin_login():
 	if user is None:
 		return Respond.error("User not found with the provided email", error_code=404)
 
-	if user.type is not "Admin" or user.type is not "Creator":
+	if user.type != "Admin" and user.type != "Creator":
 		return Respond.error("Login with password not allowed", error_code=422)
 
 	# If password not correct

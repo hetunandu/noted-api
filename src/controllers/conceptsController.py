@@ -101,9 +101,9 @@ def delete(user, concept_key):
 	return Respond.success({"deleted_key": concept_key})
 
 
-@concepts_controller.route('/<concept_key>/understood')
+@concepts_controller.route('/<concept_key>/done')
 @Utils.auth_required
-def understand_concept(user, concept_key):
+def done_concept(user, concept_key):
 	"""
 	Mark a concept as understood
 	"""
@@ -115,7 +115,7 @@ def understand_concept(user, concept_key):
 	if not concept_data:
 		return Respond.error(error="No data of user for this concept")
 	# mark it as understood
-	concept_data.understood = True
+	concept_data.done = True
 	concept_data.put()
 	# return
-	return Respond.success("Marked understood")
+	return Respond.success("Marked done")
