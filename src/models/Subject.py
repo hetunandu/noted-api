@@ -23,6 +23,5 @@ class Subject(ndb.Model):
 	def dict_for_list(self):
 		return {
 			"key": self.key.urlsafe(),
-			"name": self.name,
-			"image": self.image
+			"name": self.name
 		}

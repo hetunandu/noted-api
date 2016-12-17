@@ -30,6 +30,7 @@ indexes:
   properties:
   - name: subject
   - name: created_at
+    direction: desc
 
 - kind: UserConceptData
   ancestor: yes
@@ -37,6 +38,7 @@ indexes:
   - name: subject
   - name: done
   - name: created_at
+    direction: desc
 
 - kind: UserConceptData
   ancestor: yes
@@ -44,3 +46,10 @@ indexes:
   - name: done
   - name: subject
   - name: concept
+
+- kind: UserConceptData
+  ancestor: yes
+  properties:
+  - name: subject
+  - name: right
+

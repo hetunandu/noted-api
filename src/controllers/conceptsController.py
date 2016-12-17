@@ -13,7 +13,7 @@ concepts_controller = Blueprint('concepts', __name__)
 @Utils.creator_required
 def store(user):
 	"""
-	Store a concept. //TODO: Only admin users should be able to do this
+	Store a concept.
 	:param user:
 	:return:
 	"""
@@ -105,7 +105,7 @@ def delete(user, concept_key):
 @Utils.auth_required
 def done_concept(user, concept_key):
 	"""
-	Mark a concept as understood
+	Mark a concept as done
 	"""
 	# get the concept data entity
 	concept_data = UserConceptData.query(
@@ -119,3 +119,41 @@ def done_concept(user, concept_key):
 	concept_data.put()
 	# return
 	return Respond.success("Marked done")
+
+@concepts_controller.route('/<concept_key>/right')
+@Utils.auth_required
+def right_concept(user, concept_key):
+	"""
+	Mark a concept as right
+	"""
+	# get the concept data entity
+	concept_data = UserConceptData.query(
+						UserConceptData.concept == Utils.urlsafe_to_key(concept_key),
+						ancestor=user.key
+					).get()
+	if not concept_data:
+		return Respond.error(error="No data of user for this concept")
+	# increase right count
+	concept_data.right = concept_data.right + 1
+	concept_data.put()
+	# return
+	return Respond.success("Marked right")
+
+@concepts_controller.route('/<concept_key>/wrong')
+@Utils.auth_required
+def wrong_concept(user, concept_key):
+	"""
+	Mark a concept as wrong
+	"""
+	# get the concept data entity
+	concept_data = UserConceptData.query(
+						UserConceptData.concept == Utils.urlsafe_to_key(concept_key),
+						ancestor=user.key
+					).get()
+	if not concept_data:
+		return Respond.error(error="No data of user for this concept")
+	# mark done as false
+	concept_data.done = False
+	concept_data.put()
+	# return
+	return Respond.success("Marked wrong")
