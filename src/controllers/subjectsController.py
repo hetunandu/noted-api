@@ -12,7 +12,7 @@ import logging
 subjects_controller = Blueprint('subjects', __name__)
 
 FREE_CONCEPT_LIMIT = 10
-FREE_WAIT_TIME = 600
+FREE_WAIT_TIME = 21600
 
 @subjects_controller.route('/', methods=['GET'])
 @Utils.auth_required
