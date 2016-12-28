@@ -20,7 +20,9 @@ def store(user):
 
 	subject = ndb.Key(urlsafe=post['subject_key'])
 
-	chapter = Chapter(name=post['name'], parent=subject)
+	srno = Chapter.query(ancestor=subject).count()
+
+	chapter = Chapter(name=post['name'], srno=srno, parent=subject)
 	chapter.put()
 
 	return Respond.success(chapter.single_dic())
@@ -38,10 +40,11 @@ def get_concepts(user, chapter_key):
 	chapter = ndb.Key(urlsafe=chapter_key).get().single_dic()
 
 	chapter['concepts'] = []
-	for concept in chapter['index']:
-		full_concept = ndb.Key(urlsafe=concept['key']).get()
-		if full_concept:
-			chapter['concepts'].append(full_concept.to_dict())
+
+	concepts = Concept.query(ancestor=Utils.urlsafe_to_key(chapter_key)).order(Concept.srno).fetch()
+
+	for concept in concepts:
+		chapter['concepts'].append(concept.to_dict())
 
 	return Respond.success({
 		'chapter': chapter
@@ -75,18 +78,16 @@ def delete_chapter(user, chapter_key):
 	:param chapter_key:
 	:return:
 	"""
-	chapter = ndb.Key(urlsafe=chapter_key).get()
-
-	concepts = Concept.query(Concept.chapter_key == chapter.key)
-
-	for concept in concepts:
-		concept.chapter_key = None
-		concept.put()
-
-	chapter.key.delete()
+	ndb.Key(urlsafe=chapter_key).delete()
 
 	return Respond.json({
 		"success": True,
 		"message": "Chapter deleted successfully",
 		"deleted_key": chapter_key
 	})
+
+
+
+
+
+

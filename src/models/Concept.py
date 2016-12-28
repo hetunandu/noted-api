@@ -15,7 +15,7 @@ class References(ndb.Model):
 
 class Concept(ndb.Model):
 	name = ndb.StringProperty(required=True)
-	chapter_key = ndb.KeyProperty(kind="Chapter", required=True)
+	srno = ndb.IntegerProperty()
 	isDraft = ndb.BooleanProperty(default=False)
 	explanation = ndb.JsonProperty()
 	references = ndb.StructuredProperty(References, repeated=True)

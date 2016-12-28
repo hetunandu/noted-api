@@ -24,16 +24,15 @@ def store(user):
 
 	chapter_key = ndb.Key(urlsafe=post['chapter_key'])
 
+	srno = Concept.query(ancestor=chapter_key).count()
+
 	concept = Concept(
 		name=post['name'],
-		chapter_key=chapter_key
+		srno=srno,
+		parent=chapter_key
 	)
 
 	concept.put()
-
-	chapter = chapter_key.get()
-
-	chapter.add_to_index(concept)
 
 	return Respond.success({'concept': concept.to_dict()})
 
@@ -86,15 +85,6 @@ def delete(user, concept_key):
 	Delete the concept. Remove from chapter index
 	"""
 	concept = ndb.Key(urlsafe=concept_key).get()
-	chapter = concept.chapter_key.get()
-
-	for concept_index in chapter.index:
-		if concept_index['key'] == concept.key.urlsafe():
-			chapter.index.remove(concept_index)
-			print "Removed"
-
-
-	chapter.put()
 
 	concept.key.delete()
 

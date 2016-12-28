@@ -3,6 +3,7 @@ from google.appengine.ext import ndb
 
 class Chapter(ndb.Model):
 	name = ndb.StringProperty()
+	srno = ndb.IntegerProperty()
 	index = ndb.JsonProperty(repeated=True)
 	created_at = ndb.DateTimeProperty(auto_now_add=True)
 	updated_at = ndb.DateTimeProperty(auto_now=True)

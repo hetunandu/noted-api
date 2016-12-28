@@ -3,6 +3,7 @@ from google.appengine.ext import ndb
 import jwt
 import datetime
 from passlib.hash import pbkdf2_sha256
+from src.models.UserPointLog import UserPointLog
 
 
 class User(ndb.Model):
@@ -17,8 +18,6 @@ class User(ndb.Model):
 	college = ndb.StringProperty()
 	# Type of the user
 	type = ndb.StringProperty(choices=["Student", "Creator", "Admin"], default="Student")
-	# User has access to which subjects
-	has_access = ndb.KeyProperty(kind="Subject", repeated=True)
 	# Model time properties
 	created_at = ndb.DateTimeProperty(auto_now_add=True)
 	updated_at = ndb.DateTimeProperty(auto_now=True)
@@ -35,6 +34,7 @@ class User(ndb.Model):
 			"course": self.course.urlsafe() if self.course else None,
 			"college": self.college,
 			"type": self.type,
+			"points": self.getPoints(),
 			"created_at": self.created_at,
 			"updated_at": self.updated_at
 		}
@@ -75,3 +75,37 @@ class User(ndb.Model):
 	# Verify hashed password
 	def verify_password(self, password):
 		return pbkdf2_sha256.verify(password, self.password)
+
+
+	def getPoints(self):
+		latest = UserPointLog.query(ancestor=self.key).order(-UserPointLog.created_at).get()
+
+		if not latest:
+			return 0
+
+		return latest.points
+
+	def addPoints(self, points, action):
+		old_points = self.getPoints()
+
+		UserPointLog(
+			parent=self.key,
+			change=points,
+			points=old_points + points,
+			action=action
+			).put()
+
+		return True
+
+	def subtractPoints(self, points, action):
+		old_points = self.getPoints()
+
+		UserPointLog(
+			parent=self.key,
+			change=-points,
+			points=old_points - points,
+			action=action
+			).put()
+
+		return True
+

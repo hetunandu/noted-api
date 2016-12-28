@@ -15,30 +15,32 @@ indexes:
   properties:
   - name: created_at
 
+- kind: Chapter
+  ancestor: yes
+  properties:
+  - name: srno
+
 - kind: Concept
   ancestor: yes
   properties:
   - name: created_at
 
+- kind: Concept
+  ancestor: yes
+  properties:
+  - name: srno
+
+- kind: SessionData
+  ancestor: yes
+  properties:
+  - name: subject
+  - name: created_at
+    direction: desc
+
 - kind: Subject
   properties:
   - name: course_key
   - name: created_at
-
-- kind: UserConceptData
-  ancestor: yes
-  properties:
-  - name: subject
-  - name: created_at
-    direction: desc
-
-- kind: UserConceptData
-  ancestor: yes
-  properties:
-  - name: subject
-  - name: done
-  - name: created_at
-    direction: desc
 
 - kind: UserConceptData
   ancestor: yes
@@ -51,5 +53,31 @@ indexes:
   ancestor: yes
   properties:
   - name: subject
+  - name: created_at
+    direction: desc
+
+- kind: UserConceptData
+  ancestor: yes
+  properties:
+  - name: subject
+  - name: done
+  - name: created_at
+    direction: desc
+
+- kind: UserConceptData
+  ancestor: yes
+  properties:
+  - name: subject
+  - name: read
+
+- kind: UserConceptData
+  ancestor: yes
+  properties:
+  - name: subject
   - name: right
 
+- kind: UserPointLog
+  ancestor: yes
+  properties:
+  - name: created_at
+    direction: desc

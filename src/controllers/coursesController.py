@@ -32,18 +32,3 @@ def store(user):
 
 	return Respond.success(Course.as_dict(course))
 
-@courses_controller.route('/<course_key>/subscribe', methods=['POST'])
-@Utils.auth_required
-def subscribe(user, course_key):
-	"""
-	Subscribe a course
-	:param user:
-	:param course_key:
-	:return:
-	"""
-	post = Utils.parse_json(request)
-	user.course = ndb.Key(urlsafe=course_key)
-	user.college = post['college']
-	user.put()
-
-	return Respond.success("Course subscribed by user")
