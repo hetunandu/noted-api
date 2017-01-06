@@ -207,6 +207,11 @@ def subject_index(user, subject_key):
 	index = []
 	chapters = Chapter.query(ancestor=subject.key).order(Chapter.srno)
 
+	user_data = UserConcept.query(
+			UserConcept.subject == subject.key,
+			ancestor=user.key
+			).fetch()
+
 	for chapter in chapters:
 		
 		concepts = []
@@ -216,11 +221,6 @@ def subject_index(user, subject_key):
 				"key": concept.key,
 				"name": concept.name
 			})
-
-		user_data = UserConcept.query(
-			UserConcept.subject == subject.key,
-			ancestor=user.key
-			).fetch()
 
 		for concept in concepts:
 			for data in user_data:
@@ -486,6 +486,47 @@ def add_code_for_user(user, user_key):
 	).put()
 
 	return Respond.success("Code added")
+
+
+@app_controller.route('/subjects/<subject_key>/offline')
+@Utils.auth_required
+def save_data_offline(user, subject_key):
+	"""
+	Send a json file to download all concept data of the subject
+	"""
+
+	if user.getPoints() < 500:
+		return Respond.error('User does not have enough points', error_code=400)
+
+	subject = Utils.urlsafe_to_key(subject_key).get()
+
+	offline = {
+		"subject_name": subject.name,
+		"subject_key": subject.key.urlsafe(),
+		"index": []
+	}
+
+	chapters = Chapter.query(ancestor=subject.key).order(Chapter.srno)
+
+	for chapter in chapters:
+		concepts = []
+		concept_list = Concept.query(ancestor=chapter.key).order(Concept.srno)
+
+		for concept in concept_list:
+			concepts.append(concept.to_dict())
+
+		offline['index'].append({
+			"name": chapter.name,
+			"key": chapter.key.urlsafe(),
+			"concepts": concepts
+		})
+
+
+	user.subtractPoints(500, "Download {}".format(subject.name))
+
+	return Respond.success(offline)
+
+
 
 
 

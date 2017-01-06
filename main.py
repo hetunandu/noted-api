@@ -8,6 +8,7 @@ from src.controllers.subjectsController import subjects_controller
 from src.controllers.chaptersController import chapters_controller
 from src.controllers.conceptsController import concepts_controller
 from src.controllers.appController import app_controller
+from src.controllers.paymentsController import payments_controller
 
 app = Flask(__name__)
 CORS(app)
@@ -34,3 +35,4 @@ app.register_blueprint(courses_controller, url_prefix="/courses")
 app.register_blueprint(chapters_controller, url_prefix="/chapters")
 app.register_blueprint(concepts_controller, url_prefix="/concepts")
 app.register_blueprint(app_controller, url_prefix="/study")
+app.register_blueprint(payments_controller, url_prefix="/study/payments")

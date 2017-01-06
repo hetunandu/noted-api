@@ -1,0 +1,11 @@
+../instamojo_wrapper/__init__.py
+../instamojo_wrapper/api.py
+../instamojo_wrapper/__init__.pyc
+../instamojo_wrapper/api.pyc
+.
+dependency_links.txt
+pbr.json
+PKG-INFO
+requires.txt
+SOURCES.txt
+top_level.txt

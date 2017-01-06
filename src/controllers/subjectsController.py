@@ -13,7 +13,7 @@ subjects_controller = Blueprint('subjects', __name__)
 
 
 @subjects_controller.route('/', methods=['GET'])
-@Utils.auth_required
+@Utils.creator_required
 def get(user):
 	course = user.course.get()
 	if not course:
@@ -42,7 +42,7 @@ def store(user):
 	return Respond.success(subject.dict_for_list())
 
 @subjects_controller.route('/<subject_key>/chapters', methods=['GET'])
-@Utils.auth_required
+@Utils.creator_required
 def get_chapters(user, subject_key):
 
 	subject = Utils.urlsafe_to_key(subject_key).get()
@@ -50,6 +50,13 @@ def get_chapters(user, subject_key):
 	chapters = map(Chapter.for_list, Chapter.query(ancestor=subject.key).order(Chapter.srno).fetch())
 
 	return Respond.success({"chapters": chapters})
+
+
+
+
+
+
+
 
 
 

@@ -87,6 +87,33 @@ def delete_chapter(user, chapter_key):
 	})
 
 
+# @chapters_controller.route('/order', methods=['POST'])
+# @Utils.creator_required
+# def change_order(user):
+# 	"""
+# 	Update the order of chapters (srno)
+# 	"""
+
+# 	post = Utils.parse_json(request)
+
+# 	i = 0
+# 	for chapter in post['chapters']
+# 		entity = Utils.urlsafe_to_key(chapter).get()
+# 		entity.srno = i
+# 		entity.put()
+# 		i += 1
+
+
+# 	return Respond.success("Order changed")
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,0 +1,13 @@
+LICENSE
+MANIFEST.in
+README.md
+setup.cfg
+setup.py
+instamojo_wrapper/__init__.py
+instamojo_wrapper/api.py
+instamojo_wrapper.egg-info/PKG-INFO
+instamojo_wrapper.egg-info/SOURCES.txt
+instamojo_wrapper.egg-info/dependency_links.txt
+instamojo_wrapper.egg-info/pbr.json
+instamojo_wrapper.egg-info/requires.txt
+instamojo_wrapper.egg-info/top_level.txt
