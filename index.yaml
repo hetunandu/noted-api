@@ -42,6 +42,12 @@ indexes:
   - name: course_key
   - name: created_at
 
+- kind: UserConcept
+  ancestor: yes
+  properties:
+  - name: subject
+  - name: read
+
 - kind: UserConceptData
   ancestor: yes
   properties:

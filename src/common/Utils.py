@@ -6,6 +6,7 @@ from src.common.Respond import Respond
 from src.models.User import User
 from google.appengine.ext import ndb
 import datetime
+import requests
 
 
 def parse_json(passed_request):
@@ -27,6 +28,19 @@ def urlsafe_to_key(key):
 
 def date_from_ms(ms):
 	return datetime.datetime.fromtimestamp(float(ms))
+
+
+
+def send_mail(to, subject, message):
+    requests.post(
+        "https://api.mailgun.net/v3/mg.noted.study/messages",
+        auth=("api", "key-d05bbfcd9406505468a659a0b7533dc2"),
+        data={"from": "Noted Study <app@noted.study>",
+              "to": [to.name, to.email],
+              "subject": subject,
+              "text": message})
+
+    return True
 
 
 def auth_required(original_function):

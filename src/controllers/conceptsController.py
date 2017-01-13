@@ -5,6 +5,8 @@ from src.common import Utils
 from src.common.Respond import Respond
 from src.models.Concept import Concept, References
 from src.models.UserConceptData import UserConceptData
+import base64
+import requests
 
 concepts_controller = Blueprint('concepts', __name__)
 
@@ -147,3 +149,10 @@ def wrong_concept(user, concept_key):
 	concept_data.put()
 	# return
 	return Respond.success("Marked wrong")
+
+
+
+
+
+
+

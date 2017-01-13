@@ -97,6 +97,16 @@ def user_details(user):
 		"user": user.as_dict()
 	})
 
+@app_controller.route('/user/points')
+@Utils.auth_required
+def user_points(user):
+	"""
+	Send the points of the user
+	"""
+	return Respond.success({
+		"points": user.getPoints()
+		})
+
 @app_controller.route('/courses/<course_key>/subscribe', methods=['POST'])
 @Utils.auth_required
 def subscribe(user, course_key):
@@ -168,6 +178,7 @@ def subjects(user):
 		
 		subject['read_concepts'] = UserConcept.query(
 			UserConcept.subject == key,
+			UserConcept.read >= 1,
 			ancestor=user.key).count()
 	
 	return Respond.success({"subjects": subjects})
@@ -258,15 +269,58 @@ def read_concept(user, concept_key):
 	if session_data.views_available < 1 :
 		return Respond.error("Not enough views left", error_code=420)
 
+	user_data = UserConcept.query(UserConcept.concept==concept.key, ancestor=user.key).get()
+
+	concept_dict = concept.to_dict()
+
+	if user_data:
+		concept_dict['important'] = user_data.important
+
 
 	session_data.views_available = session_data.views_available - 1
 	session_data.put()
 
 	return Respond.success({
-		"concept": concept.to_dict(),
+		"concept": concept_dict,
 		"views_available": session_data.views_available
 		})
 
+
+
+@app_controller.route('/concepts/<concept_key>/important')
+@Utils.auth_required
+def mark_concept_important(user, concept_key):
+	"""
+	Mark a concept as important
+	"""
+
+	concept = Utils.urlsafe_to_key(concept_key).get()
+
+	# Get the user data for the concept
+	user_data = UserConcept.query(UserConcept.concept == concept.key, ancestor=user.key).get()
+
+	if not user_data:
+
+		subject = concept.key.parent().parent()
+
+		user_data = UserConcept(
+				subject=subject,
+				concept=concept.key,
+				important=True,
+				parent=user.key
+			)
+
+		user_data.put()
+
+	else:
+		if user_data.important == True:
+			return Respond.error('Concept already marked important')
+
+		user_data.important = True
+		user_data.put()
+
+
+	return Respond.success('Concept marked important')
 
 
 
@@ -458,13 +512,39 @@ def code_redeem(user):
 
 	post = Utils.parse_json(request)
 
-	code_data = UserCodes.query(UserCodes.code == post['code'], ancestor=user.key).get()
+	code_data = UserCodes.query(UserCodes.code == post['code'], UserCodes.activated == False).get()
 
 	if not code_data:
-		return Respond.error('User does not have access to this code', error_code=400)
 
+		promo_data = UserCodes.query(UserCodes.code == post['code'], ancestor=user.key).get()
+		
+		if not promo_data:
+			return Respond.error('No code found', error_code=400)
+
+		user.addPoints(promo_data.points, "Used code: " + promo_data.code)
+
+		return Respond.success({"new_points": promo_data.points})
+
+
+	code_data.activated = True
+	code_data.activatedBy = user.key
+
+	code_data.put()
 
 	user.addPoints(code_data.points, "Used code: " + code_data.code)
+
+# 	Utils.send_mail(user, "Activated code", 
+# 		"""You recently activated a code on Noted to get coins.\n
+# If there were some trouble in
+# the process or need help with further steps please feel free to contact me at hetu.nandu@noted.study.\n\n
+# 		You can also provide your feedback and experience using Noted and
+# 		give any suggestions or feature requests.\n
+# 		\n
+# 		Regards,\n
+# 		Noted Team\n
+# 		www.noted.study\n
+# 		"""
+# 		)
 
 	return Respond.success({"new_points": code_data.points})
 
@@ -522,17 +602,9 @@ def save_data_offline(user, subject_key):
 		})
 
 
-	user.subtractPoints(500, "Download {}".format(subject.name))
+	user.subtractPoints(500, "Downloaded {}".format(subject.name))
 
 	return Respond.success(offline)
-
-
-
-
-
-
-
-
 
 
 
