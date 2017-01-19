@@ -7,6 +7,7 @@ class Subject(ndb.Model):
 	course_key = ndb.KeyProperty(kind="Course")
 	name = ndb.StringProperty(indexed=False)
 	image = ndb.StringProperty(indexed=False)
+	isDraft = ndb.BooleanProperty(default=True)
 	created_at = ndb.DateTimeProperty(auto_now_add=True)
 	updated_at = ndb.DateTimeProperty(auto_now=True)
 

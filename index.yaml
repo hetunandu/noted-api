@@ -39,6 +39,7 @@ indexes:
 
 - kind: Subject
   properties:
+  - name: isDraft
   - name: course_key
   - name: created_at
 

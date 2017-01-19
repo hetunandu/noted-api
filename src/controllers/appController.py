@@ -134,7 +134,7 @@ def subjects(user):
 	course = user.course.get()
 
 	# Get list of subjects
-	subject_list = Subject.query(ancestor=course.key).fetch()
+	subject_list = Subject.query(Subject.isDraft == False, ancestor=course.key).fetch()
 
 	subjects = map(Subject.dict_for_list, subject_list)
 
@@ -586,6 +586,15 @@ def save_data_offline(user, subject_key):
 		"index": []
 	}
 
+	user_data_list = UserConcept.query(UserConcept.subject == subject.key, ancestor=user.key).fetch()
+
+	user_data = {}
+	for data in user_data_list:
+		user_data[data.concept.urlsafe()] = {
+			'important': data.important,
+			'read': data.read
+		}
+
 	chapters = Chapter.query(ancestor=subject.key).order(Chapter.srno)
 
 	for chapter in chapters:
@@ -593,7 +602,13 @@ def save_data_offline(user, subject_key):
 		concept_list = Concept.query(ancestor=chapter.key).order(Concept.srno)
 
 		for concept in concept_list:
-			concepts.append(concept.to_dict())
+			concept_data = concept.to_dict()
+			key = concept_data['key']
+
+			if key in user_data:
+				concept_data.update(user_data[key])
+				
+			concepts.append(concept_data)
 
 		offline['index'].append({
 			"name": chapter.name,
