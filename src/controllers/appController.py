@@ -24,7 +24,7 @@ app_controller = Blueprint('app', __name__)
 
 VIEWS_PER_SESSION = 10
 RESET_COST = 25
-SESSION_SECONDS = 18000
+SESSION_SECONDS = 21600
 
 @app_controller.route('/login', methods=['POST'])
 def app_login():
@@ -486,8 +486,8 @@ def test_result(user, subject_key):
 				parent=user.key
 				).put()
 
-			user.addPoints(3, "Answered correctly")
-			points_counter += 3
+			user.addPoints(1, "Answered correctly")
+			points_counter += 1
 
 		if result['marked'] == "wrong":
 			UserTests(
