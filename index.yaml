@@ -88,3 +88,9 @@ indexes:
   properties:
   - name: created_at
     direction: desc
+
+- kind: UserSession
+  ancestor: yes
+  properties:
+  - name: created_at
+    direction: desc

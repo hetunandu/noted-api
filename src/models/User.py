@@ -1,10 +1,16 @@
 import logging
 from google.appengine.ext import ndb
 import jwt
-import datetime
+from datetime import datetime, timedelta
+
 from passlib.hash import pbkdf2_sha256
 from src.models.UserPointLog import UserPointLog
+from src.models.UserSession import UserSession
 
+JWT_SECRET = "LrwHQ^ac;!Wld<v"
+PER_SESSION_VIEWS = 15
+RESET_COST = 20
+SESSION_SECONDS = 21600 # 6 hours
 
 class User(ndb.Model):
 	# Basic Account Details
@@ -22,8 +28,6 @@ class User(ndb.Model):
 	created_at = ndb.DateTimeProperty(auto_now_add=True)
 	updated_at = ndb.DateTimeProperty(auto_now=True)
 
-	_secret = "LrwHQ^ac;!Wld<v"  # Used for JWT TOKEN
-
 	# Get the dict representation of a user
 	def as_dict(self):
 		return {
@@ -35,6 +39,7 @@ class User(ndb.Model):
 			"college": self.college,
 			"type": self.type,
 			"points": self.getPoints(),
+			"session": self.getSession(),
 			"created_at": self.created_at,
 			"updated_at": self.updated_at
 		}
@@ -44,10 +49,10 @@ class User(ndb.Model):
 		token = jwt.encode(
 			{
 				'key': self.key.urlsafe(),
-				'iat': datetime.datetime.utcnow(),
-				'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
+				'iat': datetime.utcnow(),
+				'exp': datetime.utcnow() + timedelta(days=7)
 			},
-			self._secret,
+			JWT_SECRET,
 			algorithm='HS256'
 		)
 
@@ -57,7 +62,7 @@ class User(ndb.Model):
 	@classmethod
 	def from_token(cls, token):
 		try:
-			decoded = jwt.decode(token, User._secret, algorithms=['HS256'])
+			decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
 		except jwt.ExpiredSignatureError:
 			logging.error('JWT token expired')
 			return None
@@ -108,4 +113,33 @@ class User(ndb.Model):
 			).put()
 
 		return True
+
+	def getSession(self):
+		session = UserSession.query(ancestor=self.key).order(-UserSession.created_at).get()
+
+		if not session:
+			session = self.createSession()
+
+		seconds_passed = (datetime.now() - session.created_at).seconds
+
+		if seconds_passed > SESSION_SECONDS:
+			session = self.createSession()
+
+		return {
+			"views": session.views,
+			"created_at": session.created_at,
+			"updated_at": session.updated_at
+		}
+
+
+	def createSession(self):		
+		session = UserSession(
+			parent=self.key,
+			views=PER_SESSION_VIEWS
+			)
+
+		session.put()
+
+		return session
+
 
