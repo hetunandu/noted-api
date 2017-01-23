@@ -2,15 +2,10 @@ import logging
 from google.appengine.ext import ndb
 import jwt
 from datetime import datetime, timedelta
-
+from src.common.consts import PER_SESSION_VIEWS, RESET_COST, SESSION_SECONDS, JWT_SECRET
 from passlib.hash import pbkdf2_sha256
 from src.models.UserPointLog import UserPointLog
 from src.models.UserSession import UserSession
-
-JWT_SECRET = "LrwHQ^ac;!Wld<v"
-PER_SESSION_VIEWS = 15
-RESET_COST = 20
-SESSION_SECONDS = 21600 # 6 hours
 
 class User(ndb.Model):
 	# Basic Account Details
@@ -128,7 +123,8 @@ class User(ndb.Model):
 		return {
 			"views": session.views,
 			"created_at": session.created_at,
-			"updated_at": session.updated_at
+			"updated_at": session.updated_at,
+			"reset_cost": RESET_COST
 		}
 
 

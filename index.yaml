@@ -94,3 +94,4 @@ indexes:
   properties:
   - name: created_at
     direction: desc
+

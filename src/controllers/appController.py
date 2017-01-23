@@ -7,6 +7,7 @@ import simplejson as json
 
 from src.common import Utils
 from src.common.Respond import Respond
+from src.common.consts import PER_SESSION_VIEWS, RESET_COST, SESSION_SECONDS
 
 from src.models.Subject import Subject
 from src.models.Chapter import Chapter
@@ -17,14 +18,11 @@ from src.models.UserConcept import UserConcept
 from src.models.UserTests import UserTests
 from src.models.UserPointLog import UserPointLog
 from src.models.SessionData import SessionData
+from src.models.UserSession import UserSession
 from src.models.UserCodes import UserCodes
 
 
 app_controller = Blueprint('app', __name__)
-
-VIEWS_PER_SESSION = 10
-RESET_COST = 25
-SESSION_SECONDS = 21600
 
 @app_controller.route('/login', methods=['POST'])
 def app_login():
@@ -140,41 +138,8 @@ def subjects(user):
 
 	for subject in subjects:
 		key = Utils.urlsafe_to_key(subject['key'])
-		session_data = SessionData.query(
-			SessionData.subject == key,
-			ancestor=user.key).order(-SessionData.created_at).get()
-
-		if not session_data:
-
-			session_data = SessionData(
-					subject=key,
-					views_available=VIEWS_PER_SESSION,
-					parent=user.key
-				)
-
-			session_data.put()
-		else:
-
-			seconds_passed = (datetime.now() - session_data.created_at).seconds
-
-			if seconds_passed > SESSION_SECONDS:
-
-				# Refresh session
-				session_data = SessionData(
-						subject=key,
-						views_available=VIEWS_PER_SESSION,
-						parent=user.key
-					)
-
-				session_data.put()
-
-		subject['views_available'] = session_data.views_available
-		
-		subject['session_ends'] = session_data.created_at + timedelta(seconds = SESSION_SECONDS)
 		
 		subject['total_concepts'] = Concept.query(ancestor=key).count()
-
-		subject['reset_cost'] = RESET_COST
 		
 		subject['read_concepts'] = UserConcept.query(
 			UserConcept.subject == key,
@@ -184,29 +149,23 @@ def subjects(user):
 	return Respond.success({"subjects": subjects})
 
 
-@app_controller.route('/subjects/<subject_key>/reset')
+@app_controller.route('/session/reset')
 @Utils.auth_required
-def reset_session(user, subject_key):
+def reset_session(user):
 
 	if user.getPoints() < RESET_COST:
 		return Respond.error('User does not have enough points', error_code=400)
 
 	user.subtractPoints(RESET_COST, "Skipped cooldown")
 
-	session_data = SessionData(
-			subject=Utils.urlsafe_to_key(subject_key),
-			views_available=10,
+	session = UserSession(
+			views=PER_SESSION_VIEWS,
 			parent=user.key
 		)
 
-	session_data.put()
+	session.put()
 
-	response = {
-		"views_available": session_data.views_available,
-		"session_ends": session_data.created_at + timedelta(seconds = SESSION_SECONDS)
-	}
-
-	return Respond.success(response)
+	return Respond.success({"session": session.as_dict()})
 
 
 @app_controller.route('/subjects/<subject_key>/index')
