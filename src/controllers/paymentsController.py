@@ -34,8 +34,8 @@ def request_payment(user):
 
 	payment_request = Payment(
 		user=user.key,
-		cost=50,
-		points=500,
+		cost=100,
+		points=750,
 		status="Pending"
 	)
 
@@ -96,7 +96,7 @@ def payment_webhook():
 def payment_status(user, payment_key):
 	payment_request = Utils.urlsafe_to_key(payment_key).get()
 
-	return Respond.success({'status': payment_request.status})
+	return Respond.success({'status': payment_request.status, 'balance': user.getPoints()})
 
 
 

@@ -1,0 +1,15 @@
+Metadata-Version: 1.1
+Name: appengine
+Version: 1.8.0.2
+Summary: Google App Engine re-packaged for PyPI
+Home-page: https://github.com/davidwtbuxton/appengine.py
+Author: David Buxton
+Author-email: david@gasmark6.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2

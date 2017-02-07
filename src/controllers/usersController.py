@@ -1,10 +1,12 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 from src.common import Utils
 from src.common.Respond import Respond
 from src.models.User import User
 from google.appengine.api import urlfetch
 import logging
 import simplejson as json
+import StringIO
+import xlsxwriter
 
 users_controller = Blueprint('users', __name__)
 
@@ -166,3 +168,57 @@ def user_details(user):
 	return Respond.success({
 		"user": user.as_dict()
 	})
+
+# @users_controller.route('/export')
+# def export_users():
+# 	"""
+# 	Export all the user in an excel
+# 	"""
+#
+# 	output = StringIO.StringIO()
+#
+# 	workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+# 	worksheet = workbook.add_worksheet()
+#
+# 	users = User.query(User.type == 'Student').fetch()
+#
+# 	worksheet.write(0, 0, 'name')
+# 	worksheet.write(0, 1, 'email')
+# 	worksheet.write(0, 2, 'college')
+# 	worksheet.write(0, 3, 'created_at')
+#
+# 	row = 1
+#
+# 	for user in users:
+#
+# 		worksheet.write(row, 0, user.name)
+# 		worksheet.write(row, 1, user.email)
+# 		worksheet.write(row, 2, user.college)
+# 		worksheet.write(row, 3, user.created_at)
+# 		row += 1
+#
+# 	workbook.close()
+#
+# 	output.seek(0)
+#
+# 	return send_file(output)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
